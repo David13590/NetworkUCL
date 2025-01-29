@@ -13,7 +13,7 @@ system {
     }
 }
 
-Der bliver oprettet fire interfaces. Det første er et "dummy interface"
+### Der bliver oprettet fire interfaces. Det første er et "dummy interface" ###
 interfaces {
     ge-0/0/0 {
         unit 0 {
