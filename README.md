@@ -1,6 +1,6 @@
 # Netværk opg30: SRX config og topology
-![alt text](https://github.com/David13590/NetworkUCL/tree/master/?raw=true)
-https://github.com/David13590/NetworkUCL/tree/master
+![alt text](https://github.com/David13590/NetworkUCL/tree/master/Network-topology.png)
+
 ## Config
 Konfiguration af SRX på VMWW til opg 30 i netværk 
 ```
