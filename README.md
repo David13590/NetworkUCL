@@ -1,5 +1,5 @@
 # Netværk opg30: SRX config og topology
-![alt text](https://github.com/David13590/NetworkUCL/tree/master/Network-topology.png)
+<img width="200px" src="./Network-topology.png"/>
 
 ## Config
 Konfiguration af SRX på VMWW til opg 30 i netværk 
@@ -12,6 +12,8 @@ system {
         encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
     }
 }
+
+Der bliver oprettet fire interfaces. Det første er et "dummy interface"
 interfaces {
     ge-0/0/0 {
         unit 0 {
@@ -44,11 +46,15 @@ interfaces {
         }
     }
 }
+
+### Der oprettes en statisk default route ### 
 routing-options {
     static {
         route 0.0.0.0/0 next-hop 10.56.16.1;
     }
 }
+
+### Opsætning af nat og security zones ###
 security {
     nat {
         /* NAT changes the source address of egress IP packets */
@@ -71,6 +77,8 @@ security {
             }
         }
     }
+
+### Sætter to policies op der tillader trust at snakke med trust men ikke den anden vej rundt ###  
     policies {
         from-zone trust to-zone trust {
             policy default-permit {
@@ -109,6 +117,8 @@ security {
             }
         }
     }
+
+### De to zoner bliver tildelt de netværks adaptere de skal eje###
     zones {
         security-zone trust {
             interfaces {
