@@ -1,3 +1,7 @@
+# Netværk opg 18: DHCP på virtuel router, server og relay
+<img width="400px" src="./opg18_pc4_ipv4.png"/><br>
+Pc4's IPv4 indstillinger som den får fra router2 relay.
+
 # Netværk opg 53/54 SRX security, address book, security zones og policies
 <img width="300px" src="./opg54networkdiagram.png"/>
 
