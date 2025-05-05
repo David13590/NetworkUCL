@@ -2,6 +2,515 @@
 <img width="400px" src="./opg18_pc4_ipv4.png"/><br>
 Pc4's IPv4 indstillinger som den får fra router2 relay.
 
+## Config
+Router1 DHCP server
+```
+version 12.1X47-D15.4;
+system {
+    host-name R2;
+    /* User: root Password: Rootpass */
+    root-authentication {
+        encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
+    }
+    services {
+        ssh;
+        dhcp {
+            /* Net1 */
+            pool 192.168.10.0/24 {
+                address-range low 192.168.10.50 high 192.168.10.60;
+                name-server 8.8.8.8;
+                router 192.168.10.1;
+                default-lease-time 60000; /* seconds. 60 for test! */
+            }
+            /* Net2 */
+            pool 192.168.11.0/24 {
+                address-range low 192.168.11.70 high 192.168.11.80;
+                name-server 8.8.8.8;
+                router 192.168.11.1;
+                default-lease-time 60000; /* seconds. 60 for test! */
+            }
+        }
+    }
+}
+interfaces {
+    ge-0/0/1 {
+        unit 0 {
+            family inet {
+                address 192.168.10.1/24;
+            }
+        }
+    }
+    ge-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.11.1/24;
+            }
+        }
+    }
+    ge-0/0/3 {
+        unit 0 {
+            family inet {
+				address 10.10.10.11/24;
+                
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 192.168.12.0/24 next-hop 10.10.10.12;
+        route 192.168.13.0/24 next-hop 10.10.10.12;
+    }
+}
+security {
+    policies {
+        from-zone trust to-zone trust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            interfaces {
+                ge-0/0/1.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+							dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/2.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/3.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+Router2 DHCP server
+```
+version 12.1X47-D15.4;
+system {
+    host-name R2;
+    /* User: root Password: Rootpass */
+    root-authentication {
+        encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
+    }
+    services {
+        ssh;
+        dhcp {
+            /* Net1 */
+            pool 192.168.12.0/24 {
+                address-range low 192.168.12.50 high 192.168.12.60;
+                name-server 8.8.8.8;
+                router 192.168.12.1;
+                default-lease-time 60000; /* seconds. 60 for test! */
+            }
+            /* Net2 */
+            pool 192.168.13.0/24 {
+                address-range low 192.168.13.70 high 192.168.13.80;
+                name-server 8.8.8.8;
+                router 192.168.13.1;
+                default-lease-time 60000; /* seconds. 60 for test! */
+            }
+        }
+    }
+}
+interfaces {
+    ge-0/0/1 {
+        unit 0 {
+            family inet {
+				address 192.168.12.1/24;
+            }
+        }
+    }
+    ge-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.13.1/24;
+            }
+        }
+    }
+    ge-0/0/4 {
+        unit 0 {
+            family inet {
+				address 10.10.10.12/24;
+                
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 192.168.10.0/24 next-hop 10.10.10.11;
+        route 192.168.11.0/24 next-hop 10.10.10.11;
+    }
+}
+security {
+    policies {
+        from-zone trust to-zone trust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            interfaces {
+                ge-0/0/1.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+							dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/2.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/4.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+Router1 DHCP server (relay)
+```
+version 12.1X47-D15.4;
+system {
+    host-name R1;
+    /* User: root Password: Rootpass */
+    root-authentication {
+        encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
+    }
+    services {
+        ssh;
+		dhcp-local-server {
+            group Net1 {
+                interface ge-0/0/1.0;
+            }
+            group Net2 {
+                interface ge-0/0/2.0;
+            }
+            group Net3 {
+				interface ge-0/0/3.0;   
+            }
+			group Net4 {
+				apply-groups my-ge-0/0/3-group;
+			}
+        }
+    }
+}
+groups {
+    my-ge-0/0/3-group {
+        interfaces {
+            ge-0/0/3 {
+                unit 0 {
+                    family inet {
+                        address 10.10.10.11/24;
+                    }       
+                }
+            }
+        }
+    }
+}
+interfaces {
+    ge-0/0/1 {
+        unit 0 {
+            family inet {
+                address 192.168.10.1/24;
+            }
+        }
+    }
+    ge-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.11.1/24;
+            }
+        }
+    }
+    apply-groups my-ge-0/0/3-group;
+}
+routing-options {
+    static {
+        route 192.168.12.0/24 next-hop 10.10.10.12;
+        route 192.168.13.0/24 next-hop 10.10.10.12;
+    }
+}
+security {
+    policies {
+        from-zone trust to-zone trust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            interfaces {
+                ge-0/0/1.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+							dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/2.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/3.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+access {
+    address-assignment {
+        pool Net1 {
+            family inet {
+                network 192.168.10.0/24;
+                range USERS {
+                    low 192.168.10.50;
+                    high 192.168.10.60;
+                }
+                dhcp-attributes {
+                    maximum-lease-time 60000; /* seconds */
+                    name-server {
+                        8.8.8.8;
+                    }
+                    router {
+                        192.168.10.1;
+                    }
+                }
+            }
+        }
+        pool Net2 {
+            family inet {
+                network 192.168.11.0/24;
+                range USERS {
+                    low 192.168.11.50;
+                    high 192.168.11.60;
+                }
+                dhcp-attributes {
+                    maximum-lease-time 60000; /* seconds */
+                    name-server {
+                        8.8.8.8;
+                    }
+                    router {
+                        192.168.11.1;
+                    }
+                }
+            }
+        }
+        pool Net3 {
+            family inet {
+                network 192.168.12.0/24;
+                range USERS {
+                    low 192.168.12.50;
+                    high 192.168.12.60;
+                }
+                dhcp-attributes {
+                    maximum-lease-time 60000; /* seconds */
+                    name-server {
+                        8.8.8.8;
+                    }
+                    router {
+                        192.168.12.1;
+                    }
+                }
+            }
+        }
+        pool Net4 {
+            family inet {
+                network 192.168.13.0/24;
+                range USERS {
+                    low 192.168.13.50;
+                    high 192.168.13.60;
+                }
+                dhcp-attributes {
+                    maximum-lease-time 60000; /* seconds */
+                    name-server {
+                        8.8.8.8;
+                    }
+                    router {
+                        192.168.13.1;
+                    }
+                }
+            }
+        }
+    }
+}
+```
+Router2 DHCP relay
+```
+version 12.1X47-D15.4;
+system {
+    host-name R2;
+    /* User: root Password: Rootpass */
+    root-authentication {
+        encrypted-password "$1$xH9xJoL6$MFOUYnZr4.Qj2NM24XInz/";
+    }
+}
+interfaces {
+    ge-0/0/1 {
+        unit 0 {
+            family inet {
+				address 192.168.12.1/24;
+            }
+        }
+    }
+    ge-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.13.1/24;
+            }
+        }
+    }
+    ge-0/0/4 {
+        unit 0 {
+            family inet {
+				address 10.10.10.12/24;
+                
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 192.168.10.0/24 next-hop 10.10.10.11;
+        route 192.168.11.0/24 next-hop 10.10.10.11;
+    }
+}
+forwarding-options {
+	helpers {
+		bootp { /* Incoming BOOTP/DHCP request forwarding configuration */
+			server 10.10.10.11;
+			interface {
+				ge-0/0/1;
+				ge-0/0/2;
+			}
+		}
+	}   
+}
+security {
+    policies {
+        from-zone trust to-zone trust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            interfaces {
+                ge-0/0/1.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+							dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/2.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp; /* Open for access to DHCP server */
+                        }
+                    }
+                }
+                ge-0/0/4.0 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                            ssh;
+                            dhcp;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
 # Netværk opg 53/54 SRX security, address book, security zones og policies
 <img width="300px" src="./opg54networkdiagram.png"/>
 
